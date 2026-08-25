@@ -9,5 +9,5 @@ class UserOrganization extends Model
 {
     use SoftDeletes;
 
-    protected $table = 'user_organization'
+    protected $table = 'user_organization';
 }

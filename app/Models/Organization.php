@@ -16,11 +16,6 @@ class Organization extends Model
         'active',
     ];
 
-    public function isActive(): bool
-    {
-        return $this->active;
-    }
-
     public function users(): BelongsToMany
     {
         return $this->belongsToMany(User::class);

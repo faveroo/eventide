@@ -4,6 +4,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Organization\StoreOrganizationController;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['guest'])->group(function() {
@@ -20,7 +21,7 @@ Route::get('/csrf-token', function() {
     ]);
 });
 
-Route::middleware(['auth', 'web'])->group(function() {
+Route::middleware(['web'])->group(function() {
     Route::post('/logout', LogoutController::class);
     
     Route::get('/', function() {
@@ -31,6 +32,12 @@ Route::middleware(['auth', 'web'])->group(function() {
         // Route::get('/', '');
         // Route::get('/create', '');
         Route::post('/', StoreOrganizationController::class)->name('organization.store');
+
+        Route::prefix('{organization}/projects')->group(function() {
+            Route::get('/', function(Request $request) {
+                return response()->json($request);
+            });
+        });
     });
 });
 
