@@ -21,7 +21,8 @@ class StoreOrganizationController extends Controller
             $payload, 
             [
                 'owner_id' => $request->user()->id,
-                'slug' => Str::slug($payload['name'])
+                'slug' => Str::slug($payload['name']),
+                'active' => true
             ]
         );
 

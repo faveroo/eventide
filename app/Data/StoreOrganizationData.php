@@ -10,5 +10,6 @@ class StoreOrganizationData extends Data
         public string $name,
         public string $slug,
         public int $owner_id,
+        public bool $active,
     ) {}
 }
