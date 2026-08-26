@@ -21,17 +21,19 @@ Route::get('/csrf-token', function() {
     ]);
 });
 
-Route::middleware(['web'])->group(function() {
+Route::middleware(['web', 'testing'])->group(function() {
     Route::post('/logout', LogoutController::class);
     
     Route::get('/', function() {
         return response()->json();
     })->name('dashboard');
 
+    Route::get('/organizations', [OrganizationController::class, 'index'])->name('organizations');
+
     Route::prefix('organization')->group(function() {
-        Route::get('/', [OrganizationController::class, 'index'])->name('organization');
         Route::get('/create', [OrganizationController::class, 'create'])->name('organization.create');
         Route::post('/', [OrganizationController::class, 'store'])->name('organization.store');
+        Route::get('/{organization}', [OrganizationController::class, 'show'])->name('organization.show');
 
         Route::prefix('{organization}/projects')->group(function() {
             Route::get('/', function(Request $request) {

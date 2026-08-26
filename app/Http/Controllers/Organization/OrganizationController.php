@@ -2,12 +2,15 @@
 
 namespace App\Http\Controllers\Organization;
 
-use App\Data\StoreOrganizationData;
+use App\Data\Organization\ResponseOrganizationData;
+use App\Data\Organization\StoreOrganizationData;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Organization\StoreOrganizationRequest;
 use App\Models\Organization;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
+use Inertia\Inertia;
 
 class OrganizationController extends Controller
 {
@@ -16,7 +19,18 @@ class OrganizationController extends Controller
      */
     public function index(Request $request)
     {
-        return response()->json(['working' => true]);
+        $user = auth()->user();
+        $organizations = $user
+            ->organizations()
+            ->with('owner')
+            ->get()
+            ->map(fn ($organization) => ResponseOrganizationData::from($organization));
+
+        return response()->json($organizations);
+
+        // return Inertia::render('organization/Index', [
+        //     'organizations' => $organizations
+        // ]);
     }
 
     /**
@@ -24,7 +38,7 @@ class OrganizationController extends Controller
      */
     public function create()
     {
-        //
+        return Inertia::render('organization/Create');
     }
 
     /**
@@ -33,25 +47,37 @@ class OrganizationController extends Controller
     public function store(StoreOrganizationRequest $request)
     {
         $payload = $request->validated();
+        $slug = Str::slug($payload['name']);
+        $user = request()->user();
 
         $data = StoreOrganizationData::from(
             $payload, 
             [
-                'owner_id' => $request->user()->id,
-                'slug' => Str::slug($payload['name']),
+                'owner_id' => $user->id,
+                'slug' => $slug,
                 'active' => true
             ]
         );
 
-        return Organization::create($data->toArray());
+        $organization = Organization::create($data->toArray())->load('members', 'owner');
+        $organization->members()->attach($user->id);
+
+        return redirect()->route(
+            route: 'organization.show',
+            parameters: [
+                'organization' => $organization->id
+            ],
+            status: 201    
+        );
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(Organization $organization)
     {
-        //
+        Gate::authorize('view', $organization);
+        return response()->json($organization->members);
     }
 
     /**
