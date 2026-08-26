@@ -9,11 +9,16 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Organization extends Model
 {
     use SoftDeletes;
+    
     protected $fillable = [
         'name',
         'slug',
         'owner_id',
         'active',
+    ];
+
+    protected $casts = [
+        'active' => 'bool'
     ];
 
     public function users(): BelongsToMany

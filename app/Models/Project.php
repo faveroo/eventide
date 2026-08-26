@@ -18,4 +18,8 @@ class Project extends Model
         'base_url',
         'organization_id',
     ];
+
+    protected $casts = [
+        'active' => 'bool'
+    ];
 }
