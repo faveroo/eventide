@@ -14,6 +14,7 @@ class UserOrganization extends Pivot
 
     /**
      * Summary of organization
+     *
      * @return BelongsTo<Organization, $this>
      */
     public function organization(): BelongsTo
@@ -23,6 +24,7 @@ class UserOrganization extends Pivot
 
     /**
      * Summary of user
+     *
      * @return BelongsTo<User, $this>
      */
     public function user(): BelongsTo

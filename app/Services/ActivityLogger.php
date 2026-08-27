@@ -9,7 +9,8 @@ class ActivityLogger
 {
     /**
      * Summary of log
-     * @param array<string, mixed> $metadata
+     *
+     * @param  array<string, mixed>  $metadata
      */
     public function log(
         string $type,

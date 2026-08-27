@@ -26,6 +26,7 @@ class Activity extends Model
 
     /**
      * Summary of subject
+     *
      * @return MorphTo<Model, $this>
      */
     public function subject(): MorphTo
@@ -35,6 +36,7 @@ class Activity extends Model
 
     /**
      * Summary of organization
+     *
      * @return BelongsTo<Organization, $this>
      */
     public function organization(): BelongsTo
@@ -44,6 +46,7 @@ class Activity extends Model
 
     /**
      * Summary of project
+     *
      * @return BelongsTo<Project, $this>
      */
     public function project(): BelongsTo
@@ -53,6 +56,7 @@ class Activity extends Model
 
     /**
      * Summary of user
+     *
      * @return BelongsTo<User, $this>
      */
     public function user(): BelongsTo

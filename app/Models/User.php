@@ -63,6 +63,7 @@ class User extends Authenticatable
 
     /**
      * Summary of organizationMemberships
+     *
      * @return HasMany<UserOrganization, $this>
      */
     public function organizationMemberships(): HasMany
@@ -82,6 +83,7 @@ class User extends Authenticatable
 
     /**
      * Summary of activities
+     *
      * @return MorphMany<Activity, $this>
      */
     public function activities(): MorphMany

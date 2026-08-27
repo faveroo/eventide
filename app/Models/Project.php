@@ -27,6 +27,7 @@ class Project extends Model
 
     /**
      * Summary of activities
+     *
      * @return MorphMany<Activity, $this>
      */
     public function activities(): MorphMany
@@ -36,6 +37,7 @@ class Project extends Model
 
     /**
      * Summary of organization
+     *
      * @return BelongsTo<Organization, $this>
      */
     public function organization(): BelongsTo

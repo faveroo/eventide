@@ -63,6 +63,7 @@ class Organization extends Model
 
     /**
      * Summary of activities
+     *
      * @return MorphMany<Activity, $this>
      */
     public function activities(): MorphMany
