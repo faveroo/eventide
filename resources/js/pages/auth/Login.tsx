@@ -1,7 +1,7 @@
-import { auth } from "@/actions/App/Http/Controllers/Auth/LoginController";
-import { create } from "@/actions/App/Http/Controllers/Auth/RegisterController";
 import { useForm } from "@inertiajs/react"
 import { Link } from "@inertiajs/react";
+import { auth } from "@/actions/App/Http/Controllers/Auth/LoginController";
+import { create } from "@/actions/App/Http/Controllers/Auth/RegisterController";
 
 export default function Login() {
     const { data, setData, post, processing, errors, reset } = useForm({
