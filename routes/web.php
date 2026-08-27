@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Organization\OrganizationController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -24,9 +25,7 @@ Route::get('/csrf-token', function () {
 Route::middleware(['web', 'testing'])->group(function () {
     Route::post('/logout', LogoutController::class);
 
-    Route::get('/', function () {
-        return response()->json();
-    })->name('dashboard');
+    Route::get('/', DashboardController::class)->name('dashboard');
 
     Route::get('/organizations', [OrganizationController::class, 'index'])->name('organizations');
 

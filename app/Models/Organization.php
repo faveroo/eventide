@@ -5,11 +5,16 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Organization extends Model
 {
     use SoftDeletes;
+
+    protected $hidden = [
+        'updated_at',
+    ];
 
     protected $fillable = [
         'name',
@@ -24,6 +29,7 @@ class Organization extends Model
 
     /**
      * Summary of members
+     *
      * @return BelongsToMany<User, $this, UserOrganization>
      */
     public function members(): BelongsToMany
@@ -37,6 +43,7 @@ class Organization extends Model
 
     /**
      * Summary of activeMembers
+     *
      * @return BelongsToMany<User, $this, UserOrganization>
      */
     public function activeMembers(): BelongsToMany
@@ -46,10 +53,20 @@ class Organization extends Model
 
     /**
      * Summary of owner
+     *
      * @return BelongsTo<User, $this>
      */
     public function owner(): BelongsTo
     {
         return $this->belongsTo(User::class, 'owner_id');
+    }
+
+    /**
+     * Summary of activities
+     * @return MorphMany<Activity, $this>
+     */
+    public function activities(): MorphMany
+    {
+        return $this->morphMany(Activity::class, 'subject');
     }
 }
