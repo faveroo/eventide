@@ -26,7 +26,7 @@ class LoginController extends Controller
         }
 
         return back()->withErrors([
-            'email' => 'As credenciais não batem com os nossos registros'
+            'email' => 'As credenciais não batem com os nossos registros',
         ]);
     }
 }

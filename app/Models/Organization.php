@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Organization extends Model
 {
     use SoftDeletes;
-    
+
     protected $fillable = [
         'name',
         'slug',
@@ -19,7 +19,7 @@ class Organization extends Model
     ];
 
     protected $casts = [
-        'active' => 'bool'
+        'active' => 'bool',
     ];
 
     public function members(): BelongsToMany
@@ -28,7 +28,7 @@ class Organization extends Model
             User::class,
             'user_organization',
         )->using(UserOrganization::class)
-         ->withPivot('role_id');
+            ->withPivot('role_id');
     }
 
     public function activeMembers(): BelongsToMany

@@ -7,7 +7,7 @@ use App\Http\Controllers\Organization\OrganizationController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['guest'])->group(function() {
+Route::middleware(['guest'])->group(function () {
     Route::get('/register', [RegisterController::class, 'create'])->name('register.form');
     Route::post('/register', [RegisterController::class, 'store'])->name('register');
 
@@ -15,33 +15,32 @@ Route::middleware(['guest'])->group(function() {
     Route::post('/login', [LoginController::class, 'auth'])->name('login');
 });
 
-Route::get('/csrf-token', function() {
+Route::get('/csrf-token', function () {
     return response()->json([
-        'token' => csrf_token()
+        'token' => csrf_token(),
     ]);
 });
 
-Route::middleware(['web', 'testing'])->group(function() {
+Route::middleware(['web', 'testing'])->group(function () {
     Route::post('/logout', LogoutController::class);
-    
-    Route::get('/', function() {
+
+    Route::get('/', function () {
         return response()->json();
     })->name('dashboard');
 
     Route::get('/organizations', [OrganizationController::class, 'index'])->name('organizations');
 
-    Route::prefix('organization')->group(function() {
+    Route::prefix('organization')->group(function () {
         Route::get('/create', [OrganizationController::class, 'create'])->name('organization.create');
         Route::post('/', [OrganizationController::class, 'store'])->name('organization.store');
         Route::get('/{organization}', [OrganizationController::class, 'show'])->name('organization.show');
 
-        Route::prefix('{organization}/projects')->group(function() {
-            Route::get('/', function(Request $request) {
+        Route::prefix('{organization}/projects')->group(function () {
+            Route::get('/', function (Request $request) {
                 return response()->json($request);
             });
         });
     });
 });
-
 
 require_once 'webhook.php';

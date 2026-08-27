@@ -20,6 +20,6 @@ class Project extends Model
     ];
 
     protected $casts = [
-        'active' => 'bool'
+        'active' => 'bool',
     ];
 }

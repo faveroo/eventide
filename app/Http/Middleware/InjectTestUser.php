@@ -20,6 +20,7 @@ class InjectTestUser
         if (! Auth::check()) {
             Auth::login(User::find(1));
         }
+
         return $next($request);
     }
 }

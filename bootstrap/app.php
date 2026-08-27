@@ -22,7 +22,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->alias([
-            'testing' => InjectTestUser::class
+            'testing' => InjectTestUser::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

@@ -51,11 +51,11 @@ class OrganizationController extends Controller
         $user = request()->user();
 
         $data = StoreOrganizationData::from(
-            $payload, 
+            $payload,
             [
                 'owner_id' => $user->id,
                 'slug' => $slug,
-                'active' => true
+                'active' => true,
             ]
         );
 
@@ -65,9 +65,9 @@ class OrganizationController extends Controller
         return redirect()->route(
             route: 'organization.show',
             parameters: [
-                'organization' => $organization->id
+                'organization' => $organization->id,
             ],
-            status: 201    
+            status: 201
         );
     }
 
@@ -77,6 +77,7 @@ class OrganizationController extends Controller
     public function show(Organization $organization)
     {
         Gate::authorize('view', $organization);
+
         return response()->json($organization->members);
     }
 

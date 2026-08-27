@@ -3,9 +3,6 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Database\Factories\UserFactory;
-use Illuminate\Database\Eloquent\Attributes\Fillable;
-use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -23,20 +20,19 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-
 class User extends Authenticatable
 {
     use HasFactory, Notifiable;
-    
+
     protected $fillable = [
         'name',
         'email',
-        'password'
+        'password',
     ];
 
     protected $hidden = [
         'password',
-        'remember_token'
+        'remember_token',
     ];
 
     protected function casts(): array
@@ -53,8 +49,8 @@ class User extends Authenticatable
             Organization::class,
             'user_organization'
         )
-        ->using(UserOrganization::class)
-        ->withPivot('role_id');
+            ->using(UserOrganization::class)
+            ->withPivot('role_id');
     }
 
     public function ownedOrganizations(): HasMany
