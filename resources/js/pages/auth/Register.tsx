@@ -3,5 +3,5 @@ export default function Register() {
         <div>
             <span>teste</span>
         </div>
-    )
+    );
 }
