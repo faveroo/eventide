@@ -81,7 +81,7 @@ class OrganizationController extends Controller
     {
         Gate::authorize('view', $organization);
 
-        return response()->json($organization->members);
+        return response()->json($organization->with('members', 'owner', 'projects')->get());
     }
 
     /**
