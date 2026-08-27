@@ -53,6 +53,16 @@ class Organization extends Model
     }
 
     /**
+     * Summary of memberships
+     *
+     * @return HasMany<UserOrganization, $this>
+     */
+    public function memberships(): HasMany
+    {
+        return $this->hasMany(UserOrganization::class);
+    }
+
+    /**
      * Summary of owner
      *
      * @return BelongsTo<User, $this>
