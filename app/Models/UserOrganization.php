@@ -12,6 +12,10 @@ class UserOrganization extends Pivot
 
     protected $table = 'user_organization';
 
+    /**
+     * Summary of role
+     * @return BelongsTo<Role, $this>
+     */
     public function role(): BelongsTo
     {
         return $this->belongsTo(Role::class);

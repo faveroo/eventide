@@ -22,6 +22,10 @@ class Organization extends Model
         'active' => 'bool',
     ];
 
+    /**
+     * Summary of members
+     * @return BelongsToMany<User, $this, UserOrganization>
+     */
     public function members(): BelongsToMany
     {
         return $this->belongsToMany(
@@ -31,11 +35,19 @@ class Organization extends Model
             ->withPivot('role_id');
     }
 
+    /**
+     * Summary of activeMembers
+     * @return BelongsToMany<User, $this, UserOrganization>
+     */
     public function activeMembers(): BelongsToMany
     {
         return $this->members()->where('users.active', true);
     }
 
+    /**
+     * Summary of owner
+     * @return BelongsTo<User, $this>
+     */
     public function owner(): BelongsTo
     {
         return $this->belongsTo(User::class, 'owner_id');
