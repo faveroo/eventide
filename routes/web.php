@@ -36,7 +36,9 @@ Route::middleware(['web', 'testing'])->group(function () {
 
         Route::prefix('{organization}/projects')->group(function () {
             Route::get('/', function (Request $request) {
-                return response()->json($request);
+                $projects = auth()->user()->load('organizations.projects');
+
+                return response()->json($projects);
             });
         });
     });
