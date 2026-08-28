@@ -10,6 +10,12 @@ class UserOrganization extends Pivot
 {
     use SoftDeletes;
 
+    protected $hidden = [
+        'organization_id',
+        'user_id',
+        'role_id',
+    ];
+
     protected $table = 'user_organization';
 
     /**
