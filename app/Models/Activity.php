@@ -13,6 +13,8 @@ class Activity extends Model
         'project_id',
         'user_id',
         'type',
+        'subject_type',
+        'subject_id',
         'description',
         'metadata',
     ];

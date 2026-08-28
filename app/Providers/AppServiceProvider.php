@@ -3,7 +3,9 @@
 namespace App\Providers;
 
 use App\Models\Organization;
+use App\Models\Project;
 use App\Policies\OrganizationPolicy;
+use App\Policies\ProjectPolicy;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
@@ -29,6 +31,7 @@ class AppServiceProvider extends ServiceProvider
         $this->configureDefaults();
 
         Gate::policy(Organization::class, OrganizationPolicy::class);
+        Gate::policy(Project::class, ProjectPolicy::class);
     }
 
     /**

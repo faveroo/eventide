@@ -11,6 +11,11 @@ class Project extends Model
 {
     use SoftDeletes;
 
+    protected $hidden = [
+        'project_manager_id',
+        'organization_id',
+    ];
+
     protected $fillable = [
         'name',
         'slug',
@@ -19,6 +24,7 @@ class Project extends Model
         'check_status_url',
         'base_url',
         'organization_id',
+        'project_manager_id',
     ];
 
     protected $casts = [
@@ -43,5 +49,15 @@ class Project extends Model
     public function organization(): BelongsTo
     {
         return $this->belongsTo(Organization::class);
+    }
+
+    /**
+     * Summary of manager
+     *
+     * @return BelongsTo<UserOrganization, $this>
+     */
+    public function managerMembership(): BelongsTo
+    {
+        return $this->belongsTo(UserOrganization::class, 'project_manager_id');
     }
 }
