@@ -20,14 +20,30 @@ class OrganizationController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
         $user = auth()->user();
         $organizations = $user
             ->organizations()
             ->with('owner')
-            ->get()
-            ->map(fn ($organization) => ResponseOrganizationData::from($organization));
+            ->when(
+                $request->filled('slug'),
+                fn ($query) => $query->where(
+                    'slug',
+                    $request->string('slug')
+                )
+            )
+            ->when($request->filled('name'),
+                fn ($query) => $query->where(
+                    'name',
+                    $request->string('name')
+                )
+            )
+            ->paginate(15);
+
+        $organizations->through(
+            fn ($organization) => ResponseOrganizationData::from($organization)
+        );
 
         return response()->json($organizations);
 
