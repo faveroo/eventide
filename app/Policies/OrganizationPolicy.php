@@ -4,6 +4,7 @@ namespace App\Policies;
 
 use App\Models\Organization;
 use App\Models\User;
+use Illuminate\Auth\Access\Response;
 
 class OrganizationPolicy
 {
@@ -18,9 +19,11 @@ class OrganizationPolicy
     /**
      * Determine whether the user can view the model.
      */
-    public function view(User $user, Organization $organization): bool
+    public function view(User $user, Organization $organization): Response
     {
-        return collect($organization->members()->pluck('user_id'))->contains($user->id);
+        return collect($organization->members()->pluck('user_id'))->contains($user->id)
+            ? Response::allow()
+            : Response::deny('You do not belong to this organization.');
     }
 
     /**
@@ -42,9 +45,11 @@ class OrganizationPolicy
     /**
      * Determine whether the user can delete the model.
      */
-    public function delete(User $user, Organization $organization): bool
+    public function delete(User $user, Organization $organization): Response
     {
-        return false;
+        return $organization->owner->id == $user->id
+            ? Response::allow()
+            : Response::deny('You are not be able to delete this organization');
     }
 
     /**

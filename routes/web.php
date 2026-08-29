@@ -5,7 +5,7 @@ use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Organization\OrganizationController;
-use App\Http\Controllers\Projects\ProjectController;
+use App\Http\Controllers\Project\ProjectController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -31,10 +31,10 @@ Route::middleware(['web', 'testing'])->group(function () {
     Route::get('/organizations', [OrganizationController::class, 'index'])->name('organizations');
 
     Route::prefix('organization')->group(function () {
-        Route::get('/create', [OrganizationController::class, 'create'])->name('organization.create');
         Route::post('/', [OrganizationController::class, 'store'])->name('organization.store');
-        Route::get('/{organization}', [OrganizationController::class, 'show'])->name('organization.show');
-        Route::delete('/{id}', [OrganizationController::class, 'destroy'])->name('organization.destroy');
+        Route::get('/create', [OrganizationController::class, 'create'])->name('organization.create');
+        Route::get('/{organization:slug}', [OrganizationController::class, 'show'])->name('organization.show');
+        Route::get('/delete/{organization}', [OrganizationController::class, 'destroy'])->name('organization.destroy');
 
         Route::get('{organization:slug}/projects', [ProjectController::class, 'index']);
 

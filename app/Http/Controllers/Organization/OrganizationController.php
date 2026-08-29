@@ -96,8 +96,9 @@ class OrganizationController extends Controller
     public function show(Organization $organization): JsonResponse
     {
         Gate::authorize('view', $organization);
+        $organization->load('memberships.role:id,slug', 'memberships.user:id,name,email', 'owner', 'projects')->get();
 
-        return response()->json($organization->with('memberships.role:id,slug', 'memberships.user:id,name,email', 'owner', 'projects')->get());
+        return response()->json($organization);
     }
 
     /**
@@ -119,8 +120,10 @@ class OrganizationController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id): void
+    public function destroy(Organization $organization): JsonResponse
     {
-        //
+        Gate::authorize('delete', $organization);
+
+        return response()->json('You are be able to delete it');
     }
 }
