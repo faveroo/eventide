@@ -78,8 +78,10 @@ class OrganizationController extends Controller
             ]
         );
 
-        $organization = Organization::create($data->toArray())->load('members', 'owner');
-        $organization->members()->attach($user->id);
+        $organization = Organization::create($data->toArray());
+        $organization->members()->attach($user->id, [
+            'role_id' => 1
+        ]);
 
         return redirect()->route(
             route: 'organization.show',

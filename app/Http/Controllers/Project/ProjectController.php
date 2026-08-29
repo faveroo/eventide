@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Project;
 
+use App\Data\Project\ResponseProjectData;
 use App\Http\Controllers\Controller;
 use App\Models\Organization;
 use Illuminate\Http\JsonResponse;
@@ -18,7 +19,7 @@ class ProjectController extends Controller
 
         $projects = $organization
             ->projects()
-            ->with('managerMembership:id,user_id', 'managerMembership.user:id,name,email,created_at')
+            ->with('managerMembership:id,user_id,role_id', 'managerMembership.user:id,name,email,created_at', 'managerMembership.role:id,slug')
             ->when(
                 $slug !== '',
                 fn ($query) => $query->whereLike(
@@ -27,6 +28,10 @@ class ProjectController extends Controller
                 )
             )
             ->paginate(15);
+        
+        $projects->through(
+            fn ($project) => ResponseProjectData::from($project)
+        );
 
         return response()->json($projects);
     }
