@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Data\Organization\ResponseOrganizationData;
+use App\Data\Project\ResponseProjectData;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -12,8 +14,16 @@ class DashboardController extends Controller
      */
     public function __invoke(Request $request): JsonResponse
     {
-        $organizations = $request->user()->organizationMemberships()->with(['organization', 'role'])->get();
+        $user = $request->user();
+        $organizations = $user->organizationMemberships()->with(['organization.owner', 'role'])->paginate(3);
+        $projects = $user->projects()->with('managerMembership.user', 'managerMembership.role')->paginate(3);
 
-        return response()->json($organizations);
+        $projects->through(fn ($project) => ResponseProjectData::from($project));
+        $organizations->through(fn ($organization) => ResponseOrganizationData::fromMembership($organization));
+
+        return response()->json([
+            'projects' => $projects,
+            'organizations' => $organizations,
+        ]);
     }
 }
