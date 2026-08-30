@@ -4,7 +4,10 @@ namespace App\Actions\Organization;
 
 use App\Data\Organization\StoreOrganizationData;
 use App\Models\Organization;
+use App\Models\Role;
+use App\Models\UserOrganization;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class CreateOrganizationAction
@@ -21,12 +24,20 @@ class CreateOrganizationAction
             'active' => true,
         ]);
 
-        $organization = Organization::create($data->toArray());
-        $organization
-            ->members()
-            ->attach($user->id, [
-                'role_id' => 1,
+        $ownerRole = Role::findByName('owner');
+
+        $organization = DB::transaction(function () use ($data, $ownerRole, $user): Organization {
+            $organization = Organization::create($data->toArray());
+            $membership = UserOrganization::query()->create([
+                'user_id' => $user->id,
+                'organization_id' => $organization->id,
+                'role_id' => $ownerRole->id,
             ]);
+
+            $membership->syncRoles($ownerRole);
+
+            return $organization;
+        });
 
         return $organization;
     }

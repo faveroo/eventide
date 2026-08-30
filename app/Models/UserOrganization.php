@@ -5,10 +5,15 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\Pivot;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\Permission\Traits\HasRoles;
 
 class UserOrganization extends Pivot
 {
-    use SoftDeletes;
+    use HasRoles, SoftDeletes;
+
+    public $incrementing = true;
+
+    protected string $guard_name = 'web';
 
     protected $hidden = [
         'organization_id',
@@ -17,6 +22,12 @@ class UserOrganization extends Pivot
     ];
 
     protected $table = 'user_organization';
+
+    protected $fillable = [
+        'user_id',
+        'organization_id',
+        'role_id',
+    ];
 
     /**
      * Summary of organization

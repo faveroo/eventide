@@ -15,10 +15,10 @@ class DashboardController extends Controller
     public function __invoke(Request $request): JsonResponse
     {
         $user = $request->user();
-        $organizations = $user->organizationMemberships()->with(['organization.owner', 'role'])->paginate(3);
-        $projects = $user->projects()->with('managerMembership.user', 'managerMembership.role')->paginate(3);
+        $organizations = $user->organizationMemberships()->with(['organization.owner', 'role.permissions'])->paginate(3);
+        $projects = $user->projects()->with('managerMembership.user', 'managerMembership.role.permissions')->paginate(3);
 
-        $projects->through(fn ($project) => ResponseProjectData::from($project));
+        $projects->through(fn ($project) => ResponseProjectData::fromModel($project));
         $organizations->through(fn ($organization) => ResponseOrganizationData::fromMembership($organization));
 
         return response()->json([

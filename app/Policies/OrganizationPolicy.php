@@ -21,7 +21,7 @@ class OrganizationPolicy
      */
     public function view(User $user, Organization $organization): Response
     {
-        return collect($organization->members()->pluck('user_id'))->contains($user->id)
+        return $organization->members()->whereKey($user->id)->exists()
             ? Response::allow()
             : Response::deny('You do not belong to this organization.');
     }
@@ -37,9 +37,11 @@ class OrganizationPolicy
     /**
      * Determine whether the user can update the model.
      */
-    public function update(User $user, Organization $organization): bool
+    public function update(User $user, Organization $organization): Response
     {
-        return false;
+        return $this->userHasOrganizationPermission($user, $organization, 'organizations.update')
+            ? Response::allow()
+            : Response::deny('You are not able to update this organization.');
     }
 
     /**
@@ -47,9 +49,9 @@ class OrganizationPolicy
      */
     public function delete(User $user, Organization $organization): Response
     {
-        return $organization->owner->id == $user->id
+        return $this->userHasOrganizationPermission($user, $organization, 'organizations.delete')
             ? Response::allow()
-            : Response::deny('You are not be able to delete this organization');
+            : Response::deny('You are not able to delete this organization.');
     }
 
     /**
@@ -66,5 +68,16 @@ class OrganizationPolicy
     public function forceDelete(User $user, Organization $organization): bool
     {
         return false;
+    }
+
+    private function userHasOrganizationPermission(User $user, Organization $organization, string $permission): bool
+    {
+        $membership = $organization
+            ->memberships()
+            ->with('role')
+            ->where('user_id', $user->id)
+            ->first();
+
+        return $membership?->hasPermissionTo($permission) ?? false;
     }
 }

@@ -2,7 +2,8 @@
 
 namespace App\Data\Project;
 
-use Carbon\Carbon;
+use App\Models\Project;
+use Carbon\CarbonInterface;
 use Spatie\LaravelData\Data;
 
 class ResponseProjectData extends Data
@@ -15,7 +16,22 @@ class ResponseProjectData extends Data
         public bool $active,
         public ?string $check_status_url,
         public string $base_url,
-        public ?Carbon $deleted_at,
+        public ?CarbonInterface $deleted_at,
         public ManagerData $manager_membership
     ) {}
+
+    public static function fromModel(Project $project): self
+    {
+        return new self(
+            id: $project->id,
+            name: $project->name,
+            slug: $project->slug,
+            description: $project->description,
+            active: $project->active,
+            check_status_url: $project->check_status_url,
+            base_url: $project->base_url,
+            deleted_at: $project->deleted_at,
+            manager_membership: ManagerData::fromMembership($project->managerMembership),
+        );
+    }
 }

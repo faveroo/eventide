@@ -6,6 +6,7 @@ use App\Actions\Organization\CreateOrganizationAction;
 use App\Data\Organization\ResponseOrganizationData;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Organization\StoreOrganizationRequest;
+use App\Http\Requests\Organization\UpdateOrganizationRequest;
 use App\Models\Organization;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -88,7 +89,8 @@ class OrganizationController extends Controller
     public function show(Organization $organization): JsonResponse
     {
         Gate::authorize('view', $organization);
-        $organization->load('memberships.role:id,slug', 'memberships.user:id,name,email', 'owner', 'projects')->get();
+
+        $organization->load('memberships.role.permissions:id,name', 'memberships.user:id,name,email', 'owner', 'projects')->get();
 
         return response()->json($organization);
     }
@@ -96,17 +98,21 @@ class OrganizationController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id): void
+    public function edit(Organization $orgnaization): Response
     {
-        //
+        return Inertia::render('organization/Edit');
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id): void
+    public function update(UpdateOrganizationRequest $request, Organization $organization): mixed
     {
-        //
+        Gate::authorize('update', $organization);
+
+        $name = $request->validated('name');
+
+        return response()->json('You are be able to update this organization');
     }
 
     /**
@@ -116,6 +122,6 @@ class OrganizationController extends Controller
     {
         Gate::authorize('delete', $organization);
 
-        return response()->json('You are be able to delete it');
+        return response()->json('You are be able to delete this organization');
     }
 }

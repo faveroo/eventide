@@ -95,6 +95,7 @@ class User extends Authenticatable
 
     /**
      * Summary of projects
+     *
      * @return Builder<Project>
      */
     public function projects(): Builder

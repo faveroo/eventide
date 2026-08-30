@@ -30,7 +30,7 @@ class ResponseOrganizationData extends Data
             slug: $organization->slug,
             active: $organization->active,
             owner: OwnerData::from($organization->owner),
-            role: RoleData::from($membership->role),
+            role: RoleData::fromModel($membership->role),
             deleted_at: $organization->deleted_at,
             created_at: $organization->created_at,
         );
