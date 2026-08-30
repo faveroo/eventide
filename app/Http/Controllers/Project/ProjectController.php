@@ -28,7 +28,7 @@ class ProjectController extends Controller
                 )
             )
             ->paginate(15);
-        
+
         $projects->through(
             fn ($project) => ResponseProjectData::from($project)
         );

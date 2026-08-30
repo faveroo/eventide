@@ -3,6 +3,8 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+
+use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -91,6 +93,10 @@ class User extends Authenticatable
         return $this->morphMany(Activity::class, 'subject');
     }
 
+    /**
+     * Summary of projects
+     * @return Builder<Project>
+     */
     public function projects(): Builder
     {
         return Project::query()
