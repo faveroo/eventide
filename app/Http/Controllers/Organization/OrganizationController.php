@@ -2,27 +2,32 @@
 
 namespace App\Http\Controllers\Organization;
 
+use App\Actions\Organization\CreateOrganizationAction;
 use App\Data\Organization\ResponseOrganizationData;
-use App\Data\Organization\StoreOrganizationData;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Organization\StoreOrganizationRequest;
 use App\Models\Organization;
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class OrganizationController extends Controller
 {
+    public function __construct(
+        protected CreateOrganizationAction $storeAction
+    ) {}
+
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request): JsonResponse
     {
-        $user = auth()->user();
+        $user = $request->user();
+
         $organizations = $user
             ->organizations()
             ->with('owner')
@@ -65,23 +70,9 @@ class OrganizationController extends Controller
      */
     public function store(StoreOrganizationRequest $request): RedirectResponse
     {
-        $payload = $request->validated();
-        $slug = Str::slug($payload['name']);
-        $user = request()->user();
+        $name = $request->validated('name');
 
-        $data = StoreOrganizationData::from(
-            $payload,
-            [
-                'owner_id' => $user->id,
-                'slug' => $slug,
-                'active' => true,
-            ]
-        );
-
-        $organization = Organization::create($data->toArray());
-        $organization->members()->attach($user->id, [
-            'role_id' => 1
-        ]);
+        $organization = $this->storeAction->store($name);
 
         return redirect()->route(
             route: 'organization.show',
