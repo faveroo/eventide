@@ -20,7 +20,7 @@ class ProjectController extends Controller
 
         $projects = $organization
             ->projects()
-            ->with('managerMembership:id,user_id,role_id', 'managerMembership.user:id,name,email,created_at', 'managerMembership.role.permissions:id,name')
+            ->with('managerMembership:id,user_id,role_id', 'managerMembership.user:id,name,email,created_at', 'managerMembership.role')
             ->when(
                 $slug !== '',
                 fn ($query) => $query->whereLike(
@@ -28,7 +28,7 @@ class ProjectController extends Controller
                     "%{$slug}%"
                 )
             )
-            ->paginate(15);
+            ->paginate(5);
 
         $projects->through(
             fn ($project) => ResponseProjectData::fromModel($project)

@@ -38,6 +38,7 @@ Route::middleware(['web', 'testing'])->group(function () {
         Route::get('/{organization:slug}', [OrganizationController::class, 'show'])->name('organization.show');
         // deleta a org
         Route::delete('/{organization:slug}', [OrganizationController::class, 'destroy'])->name('organization.destroy');
+        Route::post('/{organization:slug}/restore', [OrganizationController::class, 'restore'])->withTrashed()->name('organization.restore');
 
         // lista os projetos da org
         Route::get('{organization:slug}/projects', [ProjectController::class, 'index']);
