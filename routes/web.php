@@ -6,7 +6,6 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Organization\OrganizationController;
 use App\Http\Controllers\Project\ProjectController;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['guest'])->group(function () {
@@ -31,17 +30,21 @@ Route::middleware(['web', 'testing'])->group(function () {
     Route::get('/organizations', [OrganizationController::class, 'index'])->name('organizations');
 
     Route::prefix('organization')->group(function () {
+        // lista as orgs
         Route::post('/', [OrganizationController::class, 'store'])->name('organization.store');
+        // formulario para criar org
         Route::get('/create', [OrganizationController::class, 'create'])->name('organization.create');
+        // pág da org
         Route::get('/{organization:slug}', [OrganizationController::class, 'show'])->name('organization.show');
+        // deleta a org
         Route::delete('/{organization:slug}', [OrganizationController::class, 'destroy'])->name('organization.destroy');
 
+        // lista os projetos da org
         Route::get('{organization:slug}/projects', [ProjectController::class, 'index']);
 
         Route::prefix('{organization:slug}/project')->group(function () {
-            Route::get('/', function (Request $request) {
-                return response()->json($request->header());
-            });
+            // pág de um projeto
+            Route::get('/{project:slug}', [ProjectController::class, 'show']);
         });
     });
 });

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Project;
 use App\Data\Project\ResponseProjectData;
 use App\Http\Controllers\Controller;
 use App\Models\Organization;
+use App\Models\Project;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -34,5 +35,10 @@ class ProjectController extends Controller
         );
 
         return response()->json($projects);
+    }
+
+    public function show(Organization $organization, Project $project): JsonResponse
+    {
+        return response()->json($project);
     }
 }
