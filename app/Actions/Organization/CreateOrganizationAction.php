@@ -6,12 +6,16 @@ use App\Data\Organization\StoreOrganizationData;
 use App\Models\Organization;
 use App\Models\Role;
 use App\Models\UserOrganization;
+use App\Services\ActivityLogger;
+use Illuminate\Console\Attributes\Description;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class CreateOrganizationAction
 {
+    public function __construct(public ActivityLogger $logService) {}
+
     public function store(string $name): Organization
     {
         $slug = Str::slug($name);
@@ -36,8 +40,20 @@ class CreateOrganizationAction
 
             $membership->syncRoles($ownerRole);
 
+            $this->logService->log(
+                type: 'organization.created',
+                subject: $organization,
+                userId: $user->id,
+                descripion:'Criação teste',
+                metadata: [
+                    'name' => $organization->name,
+                    'slug' => $organization->slug
+                ]
+            );
+
             return $organization;
         });
+
 
         return $organization;
     }

@@ -30,21 +30,15 @@ Route::middleware(['web', 'testing'])->group(function () {
     Route::get('/organizations', [OrganizationController::class, 'index'])->name('organizations');
 
     Route::prefix('organization')->group(function () {
-        // lista as orgs
         Route::post('/', [OrganizationController::class, 'store'])->name('organization.store');
-        // formulario para criar org
         Route::get('/create', [OrganizationController::class, 'create'])->name('organization.create');
-        // pág da org
         Route::get('/{organization:slug}', [OrganizationController::class, 'show'])->name('organization.show');
-        // deleta a org
         Route::delete('/{organization:slug}', [OrganizationController::class, 'destroy'])->name('organization.destroy');
         Route::post('/{organization:slug}/restore', [OrganizationController::class, 'restore'])->withTrashed()->name('organization.restore');
-
-        // lista os projetos da org
-        Route::get('{organization:slug}/projects', [ProjectController::class, 'index']);
+        
+        Route::get('{organization:slug}/projects', [ProjectController::class, 'index'])->name('projects');
 
         Route::prefix('{organization:slug}/project')->group(function () {
-            // pág de um projeto
             Route::get('/{project:slug}', [ProjectController::class, 'show']);
         });
     });

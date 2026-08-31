@@ -105,4 +105,14 @@ class User extends Authenticatable
                 $query->where('users.id', $this->id);
             });
     }
+
+    /**
+     * Summary of performedActivities
+     * 
+     * @return HasMany<Activity, $this>
+     */
+    public function performedActivities(): HasMany
+    {
+        return $this->hasMany(Activity::class);
+    }
 }

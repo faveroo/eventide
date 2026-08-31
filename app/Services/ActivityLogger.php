@@ -18,6 +18,7 @@ class ActivityLogger
         ?int $organizationId = null,
         ?int $projectId = null,
         ?int $userId = null,
+        ?string $descripion = null,
         array $metadata = [],
     ): Activity {
         $activity = new Activity([
@@ -25,6 +26,7 @@ class ActivityLogger
             'organization_id' => $organizationId,
             'project_id' => $projectId,
             'user_id' => $userId,
+            'description' => $descripion,
             'metadata' => $metadata,
         ]);
 

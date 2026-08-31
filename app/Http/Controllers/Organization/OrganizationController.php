@@ -97,7 +97,7 @@ class OrganizationController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreOrganizationRequest $request): RedirectResponse
+    public function store(StoreOrganizationRequest $request): RedirectResponse|JsonResponse
     {
         $name = $request->validated('name');
 
