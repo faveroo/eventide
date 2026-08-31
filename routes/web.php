@@ -34,7 +34,7 @@ Route::middleware(['web', 'testing'])->group(function () {
         Route::post('/', [OrganizationController::class, 'store'])->name('organization.store');
         Route::get('/create', [OrganizationController::class, 'create'])->name('organization.create');
         Route::get('/{organization:slug}', [OrganizationController::class, 'show'])->name('organization.show');
-        Route::get('/delete/{organization}', [OrganizationController::class, 'destroy'])->name('organization.destroy');
+        Route::delete('/{organization:slug}', [OrganizationController::class, 'destroy'])->name('organization.destroy');
 
         Route::get('{organization:slug}/projects', [ProjectController::class, 'index']);
 
