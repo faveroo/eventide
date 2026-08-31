@@ -59,7 +59,7 @@ class OrganizationPolicy
      */
     public function restore(User $user, Organization $organization): bool
     {
-        return false;
+        return $user->id === $organization->owner->id;
     }
 
     /**

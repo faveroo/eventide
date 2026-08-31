@@ -91,4 +91,13 @@ class Organization extends Model
     {
         return $this->hasMany(Project::class);
     }
+
+    protected static function booted()
+    {
+        static::deleting(function ($organization) {
+            $organization->active = false;
+            $organization->projects()->delete();
+            $organization->save();
+        });
+    }
 }

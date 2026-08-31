@@ -3,11 +3,15 @@
 namespace App\Http\Controllers\Organization;
 
 use App\Actions\Organization\CreateOrganizationAction;
+use App\Actions\Organization\DeleteOrganizationAction;
 use App\Data\Organization\ResponseOrganizationData;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Organization\StoreOrganizationRequest;
 use App\Http\Requests\Organization\UpdateOrganizationRequest;
 use App\Models\Organization;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -27,27 +31,52 @@ class OrganizationController extends Controller
     public function index(Request $request): JsonResponse
     {
         $user = $request->user();
+        $active = $request->string('active', 'true')->toString();
+        $withInactiveOrganizations = in_array($active, ['false', 'both'], true);
 
         $organizations = $user
-            ->organizations()
-            ->with('owner')
-            ->when(
-                $request->filled('slug'),
-                fn ($query) => $query->where(
-                    'slug',
-                    $request->string('slug')
-                )
-            )
-            ->when($request->filled('name'),
-                fn ($query) => $query->where(
-                    'name',
-                    $request->string('name')
-                )
-            )
-            ->paginate(15);
+            ->organizationMemberships()
+            ->with([
+                'organization' => function (Relation $relation) use ($withInactiveOrganizations): void {
+                    $relation
+                        ->getQuery()
+                        ->when(
+                            $withInactiveOrganizations,
+                            fn (Builder $query) => $query->withoutGlobalScope(SoftDeletingScope::class)
+                        )
+                        ->with('owner');
+                },
+                'role',
+            ])
+            ->whereHas('organization', function (Builder $query) use ($active, $request): void {
+                match ($active) {
+                    'both' => $query->withoutGlobalScope(SoftDeletingScope::class),
+                    'false' => $query
+                        ->withoutGlobalScope(SoftDeletingScope::class)
+                        ->where('organizations.active', false),
+                    default => $query->where('organizations.active', true),
+                };
+
+                $query
+                    ->when(
+                        $request->filled('slug'),
+                        fn (Builder $query) => $query->where(
+                            'organizations.slug',
+                            $request->string('slug')->toString()
+                        )
+                    )
+                    ->when(
+                        $request->filled('name'),
+                        fn (Builder $query) => $query->where(
+                            'organizations.name',
+                            $request->string('name')->toString()
+                        )
+                    );
+            })
+            ->paginate(3);
 
         $organizations->through(
-            fn ($organization) => ResponseOrganizationData::from($organization)
+            fn ($organization) => ResponseOrganizationData::fromMembership($organization)
         );
 
         return response()->json($organizations);
@@ -122,6 +151,18 @@ class OrganizationController extends Controller
     {
         Gate::authorize('delete', $organization);
 
-        return response()->json('You are be able to delete this organization');
+        $deleted = $organization->delete($organization) ? 'Deleted' : 'Not Deleted';
+
+        return response()->json($deleted);
+
+    }
+
+    public function restore(Organization $organization): JsonResponse
+    {
+        Gate::authorize('restore', $organization);
+
+        $restored = $organization->restore() ? 'Restored' : 'Not Restored';
+
+        return response()->json($restored);
     }
 }
