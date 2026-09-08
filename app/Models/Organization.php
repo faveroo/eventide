@@ -39,7 +39,7 @@ class Organization extends Model
             User::class,
             'user_organization',
         )->using(UserOrganization::class)
-            ->withPivot('role_id');
+            ->withPivot('role_id')->wherePivotNull('deleted_at');
     }
 
     /**
@@ -49,7 +49,7 @@ class Organization extends Model
      */
     public function activeMembers(): BelongsToMany
     {
-        return $this->members()->where('users.active', true);
+        return $this->members();
     }
 
     /**
@@ -92,12 +92,14 @@ class Organization extends Model
         return $this->hasMany(Project::class);
     }
 
-    protected static function booted()
+    public function roleFor(User $user): ?string
     {
-        static::deleting(function ($organization) {
-            $organization->active = false;
-            $organization->projects()->delete();
-            $organization->save();
-        });
+        if ((int) $this->owner_id === (int) $user->id) {
+            return 'owner';
+        }
+
+        $this->loadMissing('memberships.role');
+
+        return $this->memberships->firstWhere('user_id', $user->id)?->role?->name;
     }
 }

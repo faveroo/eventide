@@ -4,7 +4,6 @@ namespace App\Http\Requests\Organization;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Support\Facades\Auth;
 
 class UpdateOrganizationRequest extends FormRequest
 {
@@ -13,7 +12,7 @@ class UpdateOrganizationRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return Auth::check();
+        return $this->user()?->can('update', $this->route('organization')) ?? false;
     }
 
     /**
@@ -24,7 +23,7 @@ class UpdateOrganizationRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'min:3', 'max:50'],
+            'name' => ['required', 'string', 'min:3', 'max:50'],
         ];
     }
 }

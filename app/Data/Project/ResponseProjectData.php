@@ -15,9 +15,9 @@ class ResponseProjectData extends Data
         public ?string $description,
         public bool $active,
         public ?string $check_status_url,
-        public string $base_url,
+        public ?string $base_url,
         public ?CarbonInterface $deleted_at,
-        public ManagerData $manager_membership
+        public ?ManagerData $manager_membership
     ) {}
 
     public static function fromModel(Project $project): self
@@ -31,7 +31,7 @@ class ResponseProjectData extends Data
             check_status_url: $project->check_status_url,
             base_url: $project->base_url,
             deleted_at: $project->deleted_at,
-            manager_membership: ManagerData::fromMembership($project->managerMembership),
+            manager_membership: $project->managerMembership ? ManagerData::fromMembership($project->managerMembership) : null,
         );
     }
 }

@@ -2,7 +2,7 @@
 
 namespace App\Data;
 
-use Carbon\Carbon;
+use Carbon\CarbonInterface;
 use Spatie\LaravelData\Data;
 
 class UserData extends Data
@@ -11,6 +11,6 @@ class UserData extends Data
         public int $id,
         public string $name,
         public string $email,
-        public Carbon $created_at,
+        public CarbonInterface $created_at,
     ) {}
 }

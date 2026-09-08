@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Data\Auth\AuthenticatedUserData;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -39,7 +40,12 @@ class HandleInertiaRequests extends Middleware
             ...parent::share($request),
             'name' => config('app.name'),
             'auth' => [
-                'user' => $request->user(),
+                'user' => $request->user() ? AuthenticatedUserData::from($request->user())->toArray() : null,
+            ],
+            'flash' => [
+                'message' => fn () => $request->session()->get('message'),
+                'api_token' => fn () => $request->session()->get('api_token'),
+                'github_secret' => fn () => $request->session()->get('github_secret'),
             ],
         ];
     }

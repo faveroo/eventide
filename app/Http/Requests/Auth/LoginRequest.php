@@ -24,8 +24,14 @@ class LoginRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'password' => ['required'],
-            'email' => ['required', 'email'],
+            'password' => ['required', 'string'],
+            'email' => ['required', 'string', 'email'],
+            'remember' => ['sometimes', 'boolean'],
         ];
+    }
+
+    protected function prepareForValidation(): void
+    {
+        $this->merge(['email' => strtolower(trim((string) $this->input('email')))]);
     }
 }

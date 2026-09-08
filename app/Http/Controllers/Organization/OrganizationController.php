@@ -3,166 +3,90 @@
 namespace App\Http\Controllers\Organization;
 
 use App\Actions\Organization\CreateOrganizationAction;
-use App\Actions\Organization\DeleteOrganizationAction;
-use App\Data\Organization\ResponseOrganizationData;
+use App\Data\Organization\OrganizationInputData;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Organization\StoreOrganizationRequest;
 use App\Http\Requests\Organization\UpdateOrganizationRequest;
 use App\Models\Organization;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Relations\Relation;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
-use Illuminate\Http\JsonResponse;
+use App\Models\Role;
+use App\Models\User;
+use App\Models\UserOrganization;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
-use Inertia\Inertia;
-use Inertia\Response;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class OrganizationController extends Controller
 {
-    public function __construct(
-        protected CreateOrganizationAction $storeAction
-    ) {}
-
-    /**
-     * Display a listing of the resource.
-     */
-    public function index(Request $request): JsonResponse
+    public function store(StoreOrganizationRequest $request, CreateOrganizationAction $action): RedirectResponse
     {
-        $user = $request->user();
-        $active = $request->string('active', 'true')->toString();
-        $withInactiveOrganizations = in_array($active, ['false', 'both'], true);
+        $organization = $action->store(OrganizationInputData::from($request->validated()), $request->user());
 
-        $organizations = $user
-            ->organizationMemberships()
-            ->with([
-                'organization' => function (Relation $relation) use ($withInactiveOrganizations): void {
-                    $relation
-                        ->getQuery()
-                        ->when(
-                            $withInactiveOrganizations,
-                            fn (Builder $query) => $query->withoutGlobalScope(SoftDeletingScope::class)
-                        )
-                        ->with('owner');
-                },
-                'role',
-            ])
-            ->whereHas('organization', function (Builder $query) use ($active, $request): void {
-                match ($active) {
-                    'both' => $query->withoutGlobalScope(SoftDeletingScope::class),
-                    'false' => $query
-                        ->withoutGlobalScope(SoftDeletingScope::class)
-                        ->where('organizations.active', false),
-                    default => $query->where('organizations.active', true),
-                };
-
-                $query
-                    ->when(
-                        $request->filled('slug'),
-                        fn (Builder $query) => $query->where(
-                            'organizations.slug',
-                            $request->string('slug')->toString()
-                        )
-                    )
-                    ->when(
-                        $request->filled('name'),
-                        fn (Builder $query) => $query->where(
-                            'organizations.name',
-                            $request->string('name')->toString()
-                        )
-                    );
-            })
-            ->paginate(3);
-
-        $organizations->through(
-            fn ($organization) => ResponseOrganizationData::fromMembership($organization)
-        );
-
-        return response()->json($organizations);
-
-        // return Inertia::render('organization/Index', [
-        //     'organizations' => $organizations
-        // ]);
+        return redirect('/?organization='.$organization->slug)->with('message', 'Organização criada.');
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create(): Response
-    {
-        return Inertia::render('organization/Create');
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(StoreOrganizationRequest $request): RedirectResponse|JsonResponse
-    {
-        $name = $request->validated('name');
-
-        $organization = $this->storeAction->store($name);
-
-        return redirect()->route(
-            route: 'organization.show',
-            parameters: [
-                'organization' => $organization->id,
-            ],
-            status: 201
-        );
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(Organization $organization): JsonResponse
-    {
-        Gate::authorize('view', $organization);
-
-        $organization->load('memberships.role.permissions:id,name', 'memberships.user:id,name,email', 'owner', 'projects')->get();
-
-        return response()->json($organization);
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Organization $orgnaization): Response
-    {
-        return Inertia::render('organization/Edit');
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(UpdateOrganizationRequest $request, Organization $organization): mixed
+    public function update(UpdateOrganizationRequest $request, Organization $organization): RedirectResponse
     {
         Gate::authorize('update', $organization);
+        $organization->update(OrganizationInputData::from($request->validated())->toArray());
 
-        $name = $request->validated('name');
-
-        return response()->json('You are be able to update this organization');
+        return back()->with('message', 'Organização atualizada.');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Organization $organization): JsonResponse
+    public function destroy(Organization $organization): RedirectResponse
     {
         Gate::authorize('delete', $organization);
+        $organization->update(['active' => false]);
+        $organization->delete();
 
-        $deleted = $organization->delete($organization) ? 'Deleted' : 'Not Deleted';
-
-        return response()->json($deleted);
-
+        return redirect('/?tab=organizations')->with('message', 'Organização arquivada.');
     }
 
-    public function restore(Organization $organization): JsonResponse
+    public function restore(Organization $organization): RedirectResponse
     {
         Gate::authorize('restore', $organization);
+        $organization->restore();
+        $organization->update(['active' => true]);
 
-        $restored = $organization->restore() ? 'Restored' : 'Not Restored';
+        return redirect('/?organization='.$organization->slug.'&tab=organizations')->with('message', 'Organização restaurada.');
+    }
 
-        return response()->json($restored);
+    public function member(Request $request, Organization $organization): RedirectResponse
+    {
+        Gate::authorize('manageMembers', $organization);
+        $request->merge(['email' => strtolower(trim((string) $request->input('email')))]);
+        $data = $request->validate(['email' => ['required', 'email', 'exists:users,email'], 'role' => ['required', Rule::in(['owner', 'project-manager', 'member'])]]);
+        $user = User::where('email', $data['email'])->firstOrFail();
+        if ((int) $organization->owner_id === (int) $user->id && $data['role'] !== 'owner') {
+            throw ValidationException::withMessages(['role' => 'O proprietário principal deve manter o papel de owner.']);
+        }
+        DB::transaction(function () use ($organization, $user, $data) {
+            $role = Role::query()->firstOrCreate(['name' => $data['role'], 'guard_name' => 'web']);
+            $membership = UserOrganization::withTrashed()->firstOrNew(['organization_id' => $organization->id, 'user_id' => $user->id]);
+            $membership->role()->associate($role);
+            $membership->deleted_at = null;
+            $membership->save();
+            $membership->syncRoles($role);
+        });
+
+        return back()->with('message', 'Membro atualizado.');
+    }
+
+    public function removeMember(Organization $organization, int $userId): RedirectResponse
+    {
+        Gate::authorize('manageMembers', $organization);
+        if ((int) $organization->owner_id === $userId) {
+            throw ValidationException::withMessages(['member' => 'O proprietário principal não pode ser removido.']);
+        }
+        $membership = $organization->memberships()->where('user_id', $userId)->firstOrFail();
+        DB::transaction(function () use ($organization, $membership) {
+            $organization->projects()->where('project_manager_id', $membership->id)->update(['project_manager_id' => null]);
+            $membership->syncRoles([]);
+            $membership->delete();
+        });
+
+        return back()->with('message', 'Membro removido.');
     }
 }

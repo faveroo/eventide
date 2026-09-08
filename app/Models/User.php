@@ -60,7 +60,7 @@ class User extends Authenticatable
             'user_organization'
         )
             ->using(UserOrganization::class)
-            ->withPivot('role_id');
+            ->withPivot('role_id')->wherePivotNull('deleted_at');
     }
 
     /**
@@ -108,7 +108,7 @@ class User extends Authenticatable
 
     /**
      * Summary of performedActivities
-     * 
+     *
      * @return HasMany<Activity, $this>
      */
     public function performedActivities(): HasMany

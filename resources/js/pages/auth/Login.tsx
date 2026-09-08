@@ -1,67 +1,60 @@
-import { useForm } from '@inertiajs/react';
-import { Link } from '@inertiajs/react';
+import { Link, useForm } from '@inertiajs/react';
+import { ArrowRightIcon } from '@phosphor-icons/react';
 import { auth } from '@/actions/App/Http/Controllers/Auth/LoginController';
 import { create } from '@/actions/App/Http/Controllers/Auth/RegisterController';
+import { Field, FormErrors } from '@/components/ui';
+import AuthLayout from '@/layouts/AuthLayout';
 
 export default function Login() {
-    const { data, setData, post, processing, errors, reset } = useForm({
-        email: '',
-        password: '',
-    });
-
-    function submit(e: React.SubmitEvent<HTMLFormElement>) {
-        e.preventDefault();
-        post(auth.url(), {
-            onError: () => reset('password'),
-        });
-    }
+    const form = useForm({ email: '', password: '' });
 
     return (
-        <div className="flex min-h-screen flex-col items-center justify-center gap-3">
-            <div>
-                <span className="text-5xl font-bold"> Login </span>
+        <AuthLayout title="Entrar">
+            <h2>Bom ter você de volta.</h2>
+            <p>Entre para acompanhar suas aplicações.</p>
+            <FormErrors errors={form.errors} />
+            <form
+                className="form-stack"
+                onSubmit={(e) => {
+                    e.preventDefault();
+                    form.post(auth.url(), {
+                        onError: () => form.reset('password'),
+                    });
+                }}
+            >
+                <Field label="E-mail">
+                    <input
+                        type="email"
+                        autoComplete="username"
+                        name="email"
+                        required
+                        value={form.data.email}
+                        onChange={(e) => form.setData('email', e.target.value)}
+                        placeholder="voce@empresa.com"
+                    />
+                </Field>
+                <Field label="Senha">
+                    <input
+                        type="password"
+                        autoComplete="current-password"
+                        name="password"
+                        required
+                        value={form.data.password}
+                        onChange={(e) =>
+                            form.setData('password', e.target.value)
+                        }
+                        placeholder="Sua senha"
+                    />
+                </Field>
+                <button className="button primary" disabled={form.processing}>
+                    {form.processing ? 'Entrando...' : 'Entrar'}
+                    <ArrowRightIcon size={17} />
+                </button>
+            </form>
+            <div className="auth-switch">
+                Ainda não tem uma conta?
+                <Link href={create.url()}>Criar conta</Link>
             </div>
-            <div className="w-sm">
-                <form onSubmit={submit}>
-                    <div className="flex flex-col gap-3">
-                        <label htmlFor="email">Email</label>
-                        <input
-                            className="border p-1"
-                            type="email"
-                            id="email"
-                            value={data.email}
-                            onChange={(e) => setData('email', e.target.value)}
-                        />
-                        {errors.email && <div>{errors.email}</div>}
-
-                        <label htmlFor="password">Password</label>
-                        <input
-                            className="border p-1"
-                            type="password"
-                            id="password"
-                            value={data.password}
-                            onChange={(e) =>
-                                setData('password', e.target.value)
-                            }
-                        />
-                        {errors.password && <div>{errors.password}</div>}
-                    </div>
-
-                    <div className="mt-2">
-                        <button
-                            className="w-full rounded bg-sky-500 p-3"
-                            type="submit"
-                            disabled={processing}
-                        >
-                            Login
-                        </button>
-                    </div>
-                </form>
-                <div className="my-2">
-                    dont have account?
-                    <Link href={create.url()}>register here</Link>
-                </div>
-            </div>
-        </div>
+        </AuthLayout>
     );
 }
