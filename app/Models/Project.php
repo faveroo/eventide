@@ -45,6 +45,16 @@ class Project extends Model
         'latency_threshold_ms' => 'integer',
     ];
 
+    public function isHealthCheckDue(): bool
+    {
+        return $this->active
+            && $this->check_status_url
+            && $this->organization?->active
+            && (! $this->last_checked_at || $this->last_checked_at->lte(
+                now()->subSeconds($this->check_interval_seconds ?? config('eventide.health_interval_seconds'))
+            ));
+    }
+
     /** @return HasMany<AppEvent, $this> */
     public function events(): HasMany
     {

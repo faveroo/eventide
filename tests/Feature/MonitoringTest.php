@@ -249,3 +249,70 @@ it('honors project check settings and skips duplicate queued health jobs', funct
     $job->handle(app(HealthMonitor::class));
     expect(HealthCheck::count())->toBe(2)->and(Incident::count())->toBe(1);
 });
+
+it('waits until the exact configured interval before scheduling another check', function () {
+    $this->freezeSecond();
+    $this->project->forceFill([
+        'check_status_url' => 'https://8.8.8.8/health',
+        'check_interval_seconds' => 120,
+        'last_checked_at' => now()->subSeconds(119),
+    ])->save();
+
+    (new ScheduleHealthChecks)->handle(app(IncidentDetector::class));
+
+    Queue::assertNothingPushed();
+
+    $this->travel(1)->seconds();
+    (new ScheduleHealthChecks)->handle(app(IncidentDetector::class));
+
+    Queue::assertPushed(CheckProjectHealth::class, 1);
+    Queue::assertPushed(CheckProjectHealth::class, fn ($job) => $job->projectId === $this->project->id);
+});
+
+it('keeps a single pending check per project across scheduler runs', function () {
+    $this->project->update(['check_status_url' => 'https://8.8.8.8/health']);
+    $other = Project::create([
+        'name' => 'Other', 'slug' => 'other', 'active' => true,
+        'organization_id' => $this->organization->id,
+        'check_status_url' => 'https://8.8.4.4/health',
+    ]);
+
+    (new ScheduleHealthChecks)->handle(app(IncidentDetector::class));
+    (new ScheduleHealthChecks)->handle(app(IncidentDetector::class));
+
+    Queue::assertPushed(CheckProjectHealth::class, 2);
+    Queue::assertPushed(CheckProjectHealth::class, fn ($job) => $job->projectId === $this->project->id);
+    Queue::assertPushed(CheckProjectHealth::class, fn ($job) => $job->projectId === $other->id);
+});
+
+it('recovers scheduling when an abandoned health check lock expires', function () {
+    $this->freezeSecond();
+    $this->project->update(['check_status_url' => 'https://8.8.8.8/health']);
+    (new ScheduleHealthChecks)->handle(app(IncidentDetector::class));
+
+    $this->travel(3599)->seconds();
+    (new ScheduleHealthChecks)->handle(app(IncidentDetector::class));
+    Queue::assertPushed(CheckProjectHealth::class, 1);
+
+    $this->travel(2)->seconds();
+    (new ScheduleHealthChecks)->handle(app(IncidentDetector::class));
+
+    Queue::assertPushed(CheckProjectHealth::class, 2);
+});
+
+it('does not contact an endpoint disabled after its check was queued', function (string $change) {
+    $this->project->update(['check_status_url' => 'https://8.8.8.8/health']);
+    $job = new CheckProjectHealth($this->project->id);
+    match ($change) {
+        'project disabled' => $this->project->update(['active' => false]),
+        'organization disabled' => $this->organization->update(['active' => false]),
+        'endpoint removed' => $this->project->update(['check_status_url' => null]),
+        'project deleted' => $this->project->delete(),
+        'organization deleted' => $this->organization->delete(),
+    };
+
+    $job->handle(app(HealthMonitor::class));
+
+    Http::assertNothingSent();
+    $this->assertDatabaseCount('health_checks', 0);
+})->with(['project disabled', 'organization disabled', 'endpoint removed', 'project deleted', 'organization deleted']);

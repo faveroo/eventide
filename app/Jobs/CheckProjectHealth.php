@@ -4,12 +4,12 @@ namespace App\Jobs;
 
 use App\Models\Project;
 use App\Services\HealthMonitor;
+use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Queue\Middleware\WithoutOverlapping;
-use Illuminate\Support\Carbon;
 
-class CheckProjectHealth implements ShouldQueue
+class CheckProjectHealth implements ShouldBeUnique, ShouldQueue
 {
     use Queueable;
 
@@ -17,9 +17,16 @@ class CheckProjectHealth implements ShouldQueue
 
     public int $timeout = 45;
 
+    public int $uniqueFor = 3600;
+
     public function __construct(public int $projectId)
     {
         $this->onQueue(config('eventide.queue'));
+    }
+
+    public function uniqueId(): string
+    {
+        return (string) $this->projectId;
     }
 
     /** @return list<WithoutOverlapping> */
@@ -31,8 +38,7 @@ class CheckProjectHealth implements ShouldQueue
     public function handle(HealthMonitor $monitor): void
     {
         $project = Project::find($this->projectId);
-        if ($project && (! $project->last_checked_at || Carbon::parse($project->last_checked_at)
-            ->lte(now()->subSeconds($project->check_interval_seconds ?? config('eventide.health_interval_seconds'))))) {
+        if ($project?->isHealthCheckDue()) {
             $monitor->check($project);
         }
     }

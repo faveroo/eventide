@@ -18,10 +18,10 @@ class ScheduleHealthChecks implements ShouldQueue
 
     public function handle(IncidentDetector $detector): void
     {
-        Project::query()->chunkById(200, function ($projects) use ($detector) {
+        Project::query()->with('organization')->chunkById(200, function ($projects) use ($detector) {
             foreach ($projects as $project) {
                 $detector->refreshProjectStatus($project);
-                if ($project->active && $project->organization?->active && $project->check_status_url) {
+                if ($project->isHealthCheckDue()) {
                     CheckProjectHealth::dispatch($project->id);
                 }
             }
